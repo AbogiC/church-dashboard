@@ -2,9 +2,9 @@
   <div class="management">
     <h2 class="mb-4">Service Management</h2>
 
+    <!-- Services List -->
     <div class="row">
-      <!-- Services List -->
-      <div class="col-md-8">
+      <div class="col-12">
         <div class="card mb-4">
           <div class="card-header d-flex justify-content-between align-items-center">
             <h4>Sunday Services</h4>
@@ -77,38 +77,17 @@
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Calendar Preview -->
-      <div class="col-md-4">
+    <!-- Service Calendar -->
+    <div class="row">
+      <div class="col-12">
         <div class="card">
           <div class="card-header">
-            <h5>This Week's Schedule</h5>
+            <h5>Service Calendar</h5>
           </div>
           <div class="card-body">
-            <div v-if="upcomingServices.length === 0" class="text-muted">No services this week</div>
-            <div v-else>
-              <div
-                v-for="service in upcomingServices"
-                :key="service.id"
-                class="mb-3 p-2 border rounded"
-              >
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                    <strong>{{ service.title }}</strong>
-                    <div class="small text-muted">
-                      {{ formatServiceDate(service.service_date) }}
-                      at {{ formatTime(service.service_time) }}
-                    </div>
-                  </div>
-                  <button
-                    @click="viewServiceDetails(service)"
-                    class="btn btn-sm btn-outline-primary"
-                  >
-                    View
-                  </button>
-                </div>
-              </div>
-            </div>
+            <FullCalendar :options="calendarOptions" />
           </div>
         </div>
       </div>
@@ -351,8 +330,15 @@
 
 <script>
 import { format } from 'date-fns'
+import axios from 'axios'
+import FullCalendar from '@fullcalendar/vue3'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import interactionPlugin from '@fullcalendar/interaction'
 
 export default {
+  components: {
+    FullCalendar,
+  },
   name: 'ManagementView',
   data() {
     return {
@@ -366,6 +352,14 @@ export default {
       showVolunteerModal: false,
       selectedService: null,
       editingService: null,
+      calendarEvents: [],
+      calendarOptions: {
+        plugins: [dayGridPlugin, interactionPlugin],
+        initialView: 'dayGridMonth',
+        events: [],
+        eventClick: this.handleEventClick,
+        height: 'auto',
+      },
       serviceForm: {
         service_date: '',
         service_time: '',
@@ -392,13 +386,21 @@ export default {
     async loadServices() {
       this.loadingServices = true
       try {
-        const response = await this.$axios.get('http://localhost:3000/api/services')
+        const response = await axios.get('http://localhost:3000/api/services')
         this.services = response.data
+
+        // Set calendar events
+        this.calendarEvents = this.services.map((service) => ({
+          title: service.title,
+          date: service.service_date,
+          extendedProps: { service },
+        }))
+        this.calendarOptions.events = this.calendarEvents
 
         // Get upcoming services (next 7 days)
         const today = format(new Date(), 'yyyy-MM-dd')
         const nextWeek = format(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd')
-        const upcomingResponse = await this.$axios.get(
+        const upcomingResponse = await axios.get(
           `http://localhost:3000/api/services/schedule/${today}/${nextWeek}`,
         )
         this.upcomingServices = upcomingResponse.data
@@ -418,7 +420,7 @@ export default {
     async loadVolunteers(serviceId) {
       this.loadingVolunteers = true
       try {
-        const response = await this.$axios.get(
+        const response = await axios.get(
           `http://localhost:3000/api/volunteers/service/${serviceId}`,
         )
         this.volunteers = response.data
@@ -438,12 +440,12 @@ export default {
     async saveService() {
       try {
         if (this.editingService) {
-          await this.$axios.put(
+          await axios.put(
             `http://localhost:3000/api/services/${this.editingService.id}`,
             this.serviceForm,
           )
         } else {
-          await this.$axios.post('http://localhost:3000/api/services', this.serviceForm)
+          await axios.post('http://localhost:3000/api/services', this.serviceForm)
         }
         this.closeServiceModal()
         await this.loadServices()
@@ -459,7 +461,7 @@ export default {
         )
       ) {
         try {
-          await this.$axios.delete(`http://localhost:3000/api/services/${id}`)
+          await axios.delete(`http://localhost:3000/api/services/${id}`)
           await this.loadServices()
         } catch (error) {
           console.error('Error deleting service:', error)
@@ -470,7 +472,7 @@ export default {
     async saveVolunteer() {
       try {
         this.volunteerForm.service_id = this.selectedService.id
-        await this.$axios.post('http://localhost:3000/api/volunteers', this.volunteerForm)
+        await axios.post('http://localhost:3000/api/volunteers', this.volunteerForm)
         this.closeVolunteerModal()
         await this.loadVolunteers(this.selectedService.id)
       } catch (error) {
@@ -480,7 +482,7 @@ export default {
 
     async updateVolunteerStatus(volunteerId, status) {
       try {
-        await this.$axios.put(`http://localhost:3000/api/volunteers/${volunteerId}/status`, {
+        await axios.put(`http://localhost:3000/api/volunteers/${volunteerId}/status`, {
           status,
         })
         await this.loadVolunteers(this.selectedService.id)
@@ -492,7 +494,7 @@ export default {
     async removeVolunteer(volunteerId) {
       if (confirm('Are you sure you want to remove this volunteer?')) {
         try {
-          await this.$axios.delete(`http://localhost:3000/api/volunteers/${volunteerId}`)
+          await axios.delete(`http://localhost:3000/api/volunteers/${volunteerId}`)
           await this.loadVolunteers(this.selectedService.id)
         } catch (error) {
           console.error('Error removing volunteer:', error)
@@ -575,6 +577,10 @@ export default {
         unavailable: 'bg-danger',
       }
       return classes[status] || 'bg-secondary'
+    },
+
+    handleEventClick(info) {
+      this.viewServiceDetails(info.event.extendedProps.service)
     },
   },
 }

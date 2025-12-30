@@ -14,7 +14,6 @@ const app = createApp(App)
 // Set up axios
 axios.defaults.baseURL = 'http://localhost:3000/api'
 app.use(VueAxios, axios)
-app.provide('axios', app.config.globalProperties.axios)
 
 app.use(router)
 app.mount('#app')
