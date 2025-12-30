@@ -330,7 +330,7 @@
 
 <script>
 import { format } from 'date-fns'
-import axios from 'axios'
+import apiService from '@/services/api.js'
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
@@ -386,8 +386,7 @@ export default {
     async loadServices() {
       this.loadingServices = true
       try {
-        const response = await axios.get('http://localhost:3000/api/services')
-        this.services = response.data
+        this.services = await apiService.getServices()
 
         // Set calendar events
         this.calendarEvents = this.services.map((service) => ({
@@ -400,10 +399,7 @@ export default {
         // Get upcoming services (next 7 days)
         const today = format(new Date(), 'yyyy-MM-dd')
         const nextWeek = format(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd')
-        const upcomingResponse = await axios.get(
-          `http://localhost:3000/api/services/schedule/${today}/${nextWeek}`,
-        )
-        this.upcomingServices = upcomingResponse.data
+        this.upcomingServices = await apiService.getServicesSchedule(today, nextWeek)
       } catch (error) {
         console.error('Error loading services:', error)
       } finally {
@@ -420,10 +416,7 @@ export default {
     async loadVolunteers(serviceId) {
       this.loadingVolunteers = true
       try {
-        const response = await axios.get(
-          `http://localhost:3000/api/volunteers/service/${serviceId}`,
-        )
-        this.volunteers = response.data
+        this.volunteers = await apiService.getVolunteersByService(serviceId)
       } catch (error) {
         console.error('Error loading volunteers:', error)
       } finally {
@@ -440,12 +433,9 @@ export default {
     async saveService() {
       try {
         if (this.editingService) {
-          await axios.put(
-            `http://localhost:3000/api/services/${this.editingService.id}`,
-            this.serviceForm,
-          )
+          await apiService.updateService(this.editingService.id, this.serviceForm)
         } else {
-          await axios.post('http://localhost:3000/api/services', this.serviceForm)
+          await apiService.createService(this.serviceForm)
         }
         this.closeServiceModal()
         await this.loadServices()
@@ -461,7 +451,7 @@ export default {
         )
       ) {
         try {
-          await axios.delete(`http://localhost:3000/api/services/${id}`)
+          await apiService.deleteService(id)
           await this.loadServices()
         } catch (error) {
           console.error('Error deleting service:', error)
@@ -472,7 +462,7 @@ export default {
     async saveVolunteer() {
       try {
         this.volunteerForm.service_id = this.selectedService.id
-        await axios.post('http://localhost:3000/api/volunteers', this.volunteerForm)
+        await apiService.createVolunteer(this.volunteerForm)
         this.closeVolunteerModal()
         await this.loadVolunteers(this.selectedService.id)
       } catch (error) {
@@ -482,9 +472,7 @@ export default {
 
     async updateVolunteerStatus(volunteerId, status) {
       try {
-        await axios.put(`http://localhost:3000/api/volunteers/${volunteerId}/status`, {
-          status,
-        })
+        await apiService.updateVolunteerStatus(volunteerId, status)
         await this.loadVolunteers(this.selectedService.id)
       } catch (error) {
         console.error('Error updating volunteer status:', error)
@@ -494,7 +482,7 @@ export default {
     async removeVolunteer(volunteerId) {
       if (confirm('Are you sure you want to remove this volunteer?')) {
         try {
-          await axios.delete(`http://localhost:3000/api/volunteers/${volunteerId}`)
+          await apiService.deleteVolunteer(volunteerId)
           await this.loadVolunteers(this.selectedService.id)
         } catch (error) {
           console.error('Error removing volunteer:', error)
