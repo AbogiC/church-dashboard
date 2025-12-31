@@ -10,6 +10,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "backend": "cd server && node index.js",
     "lint": "eslint . --fix --cache",
     "format": "prettier --write --experimental-cli src/"
   },

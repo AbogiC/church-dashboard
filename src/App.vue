@@ -4,7 +4,7 @@
       <div class="container">
         <router-link class="navbar-brand" to="/">
           <i class="bi bi-house-door-fill me-2"></i>
-          Church Dashboard
+          GKI Menteng
         </router-link>
         <button
           class="navbar-toggler"
@@ -16,7 +16,7 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
-            <li class="nav-item">
+            <!-- <li class="nav-item">
               <router-link class="nav-link" to="/">
                 <i class="bi bi-house me-1"></i> Home
               </router-link>
@@ -25,7 +25,7 @@
               <router-link class="nav-link" to="/about">
                 <i class="bi bi-info-circle me-1"></i> About
               </router-link>
-            </li>
+            </li> -->
             <li class="nav-item">
               <router-link class="nav-link" to="/management">
                 <i class="bi bi-gear me-1"></i> Management
@@ -43,7 +43,7 @@
     <footer class="mt-5 py-3 bg-light border-top">
       <div class="container text-center">
         <p class="mb-0 text-muted">
-          © {{ new Date().getFullYear() }} Church Dashboard. All rights reserved.
+          © {{ new Date().getFullYear() }} GKI Menteng. All rights reserved.
         </p>
       </div>
     </footer>

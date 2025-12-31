@@ -214,6 +214,7 @@
                 <label class="form-label">Service Type</label>
                 <select v-model="serviceForm.service_type" class="form-select" required>
                   <option value="sunday_service">Sunday Service</option>
+                  <option value="rehearsal">Rehearsal</option>
                   <option value="bible_study">Bible Study</option>
                   <option value="prayer_meeting">Prayer Meeting</option>
                   <option value="special_event">Special Event</option>
@@ -283,12 +284,8 @@
                 <label class="form-label">Role</label>
                 <select v-model="volunteerForm.role" class="form-select" required>
                   <option value="worship_leader">Worship Leader</option>
-                  <option value="preacher">Preacher</option>
-                  <option value="usher">Usher</option>
-                  <option value="technical">Technical Team</option>
-                  <option value="childrens_ministry">Children's Ministry</option>
-                  <option value="prayer_team">Prayer Team</option>
-                  <option value="greeter">Greeter</option>
+                  <option value="musician">Musician</option>
+                  <option value="soundman">Soundman</option>
                 </select>
               </div>
 
@@ -359,7 +356,15 @@ export default {
         events: [],
         eventClick: this.handleEventClick,
         height: 'auto',
+        headerToolbar: {
+          left: 'title',
+          right: 'prev,today,next',
+        },
+        buttonText: {
+          today: '📅', // Customize the "Today" button text if needed
+        },
       },
+
       serviceForm: {
         service_date: '',
         service_time: '',

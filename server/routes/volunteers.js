@@ -39,6 +39,18 @@ router.put('/:id/status', async (req, res) => {
   }
 })
 
+// Get volunteer count for a service
+router.get('/service/:serviceId/count', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT COUNT(*) as count FROM volunteers WHERE service_id = ?', [
+      req.params.serviceId,
+    ])
+    res.json({ count: rows[0].count })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
 // Remove volunteer
 router.delete('/:id', async (req, res) => {
   try {

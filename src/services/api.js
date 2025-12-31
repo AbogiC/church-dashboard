@@ -10,6 +10,7 @@ import {
   query,
   where,
   orderBy,
+  getCountFromServer,
 } from 'firebase/firestore'
 
 const isProduction = import.meta.env.VITE_ENV === 'production'
@@ -27,8 +28,17 @@ class ApiService {
   async getServices() {
     if (isProduction) {
       const servicesCol = collection(db, 'services')
-      const servicesSnapshot = await getDocs(servicesCol)
-      return servicesSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+      const q = query(servicesCol, orderBy('service_date', 'desc'), orderBy('service_time', 'desc'))
+      const servicesSnapshot = await getDocs(q)
+      const services = servicesSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+      // Add volunteer_count for each service
+      const servicesWithCount = await Promise.all(
+        services.map(async (service) => {
+          const count = await this.getVolunteerCount(service.id)
+          return { ...service, volunteer_count: count }
+        }),
+      )
+      return servicesWithCount
     } else {
       const response = await this.client.get('/services')
       return response.data
@@ -118,6 +128,18 @@ class ApiService {
       await deleteDoc(doc(db, 'volunteers', id))
     } else {
       await this.client.delete(`/volunteers/${id}`)
+    }
+  }
+
+  async getVolunteerCount(serviceId) {
+    if (isProduction) {
+      const volunteersCol = collection(db, 'volunteers')
+      const q = query(volunteersCol, where('service_id', '==', serviceId))
+      const snapshot = await getCountFromServer(q)
+      return snapshot.data().count
+    } else {
+      const response = await this.client.get(`/volunteers/service/${serviceId}/count`)
+      return response.data.count
     }
   }
 }
