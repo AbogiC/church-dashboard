@@ -21,6 +21,6 @@ app.use('/api/services', serviceRoutes)
 app.use('/api/volunteers', volunteerRoutes)
 app.use('/api/about', aboutRoutes)
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`)
 })

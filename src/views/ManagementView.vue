@@ -2,6 +2,20 @@
   <div class="management">
     <h2 class="mb-4">Service Management</h2>
 
+    <!-- Service Calendar -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h5>Service Calendar</h5>
+          </div>
+          <div class="card-body">
+            <FullCalendar :options="calendarOptions" />
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Services List -->
     <div class="row">
       <div class="col-12">
@@ -74,20 +88,6 @@
                 </table>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Service Calendar -->
-    <div class="row">
-      <div class="col-12">
-        <div class="card">
-          <div class="card-header">
-            <h5>Service Calendar</h5>
-          </div>
-          <div class="card-body">
-            <FullCalendar :options="calendarOptions" />
           </div>
         </div>
       </div>
