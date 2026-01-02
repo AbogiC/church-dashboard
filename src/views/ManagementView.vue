@@ -98,7 +98,7 @@
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Manage Service: {{ selectedService?.title }}</h5>
+            <h5 class="modal-title">{{ selectedService?.title }}</h5>
             <button type="button" class="btn-close" @click="closeServiceDetails"></button>
           </div>
           <div class="modal-body">
@@ -215,9 +215,6 @@
                 <select v-model="serviceForm.service_type" class="form-select" required>
                   <option value="sunday_service">Sunday Service</option>
                   <option value="rehearsal">Rehearsal</option>
-                  <option value="bible_study">Bible Study</option>
-                  <option value="prayer_meeting">Prayer Meeting</option>
-                  <option value="special_event">Special Event</option>
                 </select>
               </div>
 
@@ -363,6 +360,15 @@ export default {
         buttonText: {
           today: '📅', // Customize the "Today" button text if needed
         },
+
+        eventContent: this.renderEventContent,
+
+        // Set global time format
+        eventTimeFormat: {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true, // Change to false for 24-hour format
+        },
       },
 
       serviceForm: {
@@ -377,7 +383,7 @@ export default {
       volunteerForm: {
         service_id: null,
         full_name: '',
-        role: 'usher',
+        role: 'worship_leader',
         phone: '',
         email: '',
         assigned_date: '',
@@ -394,11 +400,35 @@ export default {
         this.services = await apiService.getServices()
 
         // Set calendar events
-        this.calendarEvents = this.services.map((service) => ({
-          title: service.title,
-          date: service.service_date,
-          extendedProps: { service },
-        }))
+        this.calendarEvents = this.services.map((service) => {
+          console.log(`\n=== Processing: ${service.title} ===`)
+          console.log('Original service_date (UTC):', service.service_date)
+          console.log('Original service_time (local?):', service.service_time)
+
+          // Parse the UTC date
+          const utcDate = new Date(service.service_date)
+          console.log('UTC Date object:', utcDate.toISOString())
+          console.log('UTC Date local string:', utcDate.toString())
+
+          // Get the local date portion (based on browser's timezone)
+          const localYear = utcDate.getFullYear()
+          const localMonth = String(utcDate.getMonth() + 1).padStart(2, '0')
+          const localDay = String(utcDate.getDate()).padStart(2, '0')
+          const localDateStr = `${localYear}-${localMonth}-${localDay}`
+
+          console.log('Local date (YYYY-MM-DD):', localDateStr)
+
+          // Combine with the service_time
+          const combinedDateTime = `${localDateStr}T${service.service_time}`
+          console.log('Combined date-time:', combinedDateTime)
+
+          return {
+            title: service.title,
+            date: combinedDateTime,
+            extendedProps: { service },
+          }
+        })
+
         this.calendarOptions.events = this.calendarEvents
 
         // Get upcoming services (next 7 days)
@@ -574,6 +604,22 @@ export default {
 
     handleEventClick(info) {
       this.viewServiceDetails(info.event.extendedProps.service)
+    },
+
+    renderEventContent(arg) {
+      const event = arg.event
+      const timeText = arg.timeText // Will be formatted according to eventTimeFormat
+
+      const el = document.createElement('div')
+
+      el.innerHTML = `
+      <div class="event-with-time">
+        <div class="time-display">${timeText}</div>
+        <div class="event-title">${event.title}</div>
+      </div>
+    `
+
+      return { domNodes: [el] }
     },
   },
 }
