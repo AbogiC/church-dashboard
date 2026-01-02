@@ -361,13 +361,11 @@ export default {
           today: '📅', // Customize the "Today" button text if needed
         },
 
-        eventContent: this.renderEventContent,
-
         // Set global time format
         eventTimeFormat: {
           hour: '2-digit',
           minute: '2-digit',
-          hour12: true, // Change to false for 24-hour format
+          hour12: false, // Change to false for 24-hour format
         },
       },
 
@@ -604,22 +602,6 @@ export default {
 
     handleEventClick(info) {
       this.viewServiceDetails(info.event.extendedProps.service)
-    },
-
-    renderEventContent(arg) {
-      const event = arg.event
-      const timeText = arg.timeText // Will be formatted according to eventTimeFormat
-
-      const el = document.createElement('div')
-
-      el.innerHTML = `
-      <div class="event-with-time">
-        <div class="time-display">${timeText}</div>
-        <div class="event-title">${event.title}</div>
-      </div>
-    `
-
-      return { domNodes: [el] }
     },
   },
 }
