@@ -48,7 +48,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="service in services" :key="service.id">
+                    <tr v-for="service in paginatedServices" :key="service.id">
                       <td>{{ formatDate(service.service_date) }}</td>
                       <td>{{ formatTime(service.service_time) }}</td>
                       <td>
@@ -88,6 +88,79 @@
                     </tr>
                   </tbody>
                 </table>
+              </div>
+
+              <!-- Pagination Controls -->
+              <div
+                class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mt-3 gap-2 gap-md-0"
+              >
+                <div
+                  class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2 gap-md-3 w-100 w-md-auto"
+                >
+                  <div class="text-muted small">
+                    <span class="d-inline d-md-none">Showing </span>
+                    <span class="d-none d-md-inline">Showing </span>
+                    {{ (currentPage - 1) * itemsPerPage + 1 }}-
+                    {{ Math.min(currentPage * itemsPerPage, services.length) }} of
+                    {{ services.length }} services
+                  </div>
+                  <div class="d-flex align-items-center gap-2">
+                    <label class="form-label mb-0 text-muted small d-none d-sm-inline">Show:</label>
+                    <select
+                      v-model="itemsPerPage"
+                      @change="changeItemsPerPage"
+                      class="form-select form-select-sm"
+                      style="width: auto; min-width: 60px"
+                    >
+                      <option :value="5">5</option>
+                      <option :value="10">10</option>
+                      <option :value="20">20</option>
+                      <option :value="50">50</option>
+                    </select>
+                    <span class="text-muted small d-none d-sm-inline">per page</span>
+                  </div>
+                </div>
+                <nav class="d-flex justify-content-center justify-content-md-end">
+                  <ul class="pagination pagination-sm mb-0">
+                    <li
+                      class="page-item d-none d-sm-inline"
+                      :class="{ disabled: currentPage === 1 }"
+                    >
+                      <a class="page-link" href="#" @click.prevent="goToPage(currentPage - 1)"
+                        >Previous</a
+                      >
+                    </li>
+                    <li class="page-item d-sm-none" :class="{ disabled: currentPage === 1 }">
+                      <a class="page-link px-2" href="#" @click.prevent="goToPage(currentPage - 1)"
+                        >‹</a
+                      >
+                    </li>
+                    <li
+                      v-for="page in visiblePages"
+                      :key="page"
+                      class="page-item"
+                      :class="{ active: page === currentPage }"
+                    >
+                      <a class="page-link" href="#" @click.prevent="goToPage(page)">{{ page }}</a>
+                    </li>
+                    <li
+                      class="page-item d-none d-sm-inline"
+                      :class="{ disabled: currentPage === totalPages }"
+                    >
+                      <a class="page-link" href="#" @click.prevent="goToPage(currentPage + 1)"
+                        >Next</a
+                      >
+                    </li>
+                    <li
+                      class="page-item d-sm-none"
+                      :class="{ disabled: currentPage === totalPages }"
+                    >
+                      <a class="page-link px-2" href="#" @click.prevent="goToPage(currentPage + 1)"
+                        >›</a
+                      >
+                    </li>
+                  </ul>
+                </nav>
               </div>
             </div>
           </div>
@@ -371,6 +444,8 @@ export default {
       selectedService: null,
       editingService: null,
       calendarEvents: [],
+      currentPage: 1,
+      itemsPerPage: 10,
       calendarOptions: {
         plugins: [dayGridPlugin, interactionPlugin],
         initialView: 'dayGridMonth',
@@ -412,6 +487,31 @@ export default {
       },
     }
   },
+  computed: {
+    paginatedServices() {
+      const start = (this.currentPage - 1) * this.itemsPerPage
+      const end = start + this.itemsPerPage
+      return this.services.slice(start, end)
+    },
+    totalPages() {
+      return Math.ceil(this.services.length / this.itemsPerPage)
+    },
+    visiblePages() {
+      const pages = []
+      const maxVisible = 5
+      let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2))
+      let end = Math.min(this.totalPages, start + maxVisible - 1)
+
+      if (end - start + 1 < maxVisible) {
+        start = Math.max(1, end - maxVisible + 1)
+      }
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i)
+      }
+      return pages
+    },
+  },
   async created() {
     await this.loadServices()
   },
@@ -420,6 +520,7 @@ export default {
       this.loadingServices = true
       try {
         this.services = await apiService.getServices()
+        this.currentPage = 1 // Reset to first page when services are loaded
 
         // Set calendar events
         this.calendarEvents = this.services.map((service) => {
@@ -624,6 +725,16 @@ export default {
 
     handleEventClick(info) {
       this.viewServiceDetails(info.event.extendedProps.service)
+    },
+
+    goToPage(page) {
+      if (page >= 1 && page <= this.totalPages) {
+        this.currentPage = page
+      }
+    },
+
+    changeItemsPerPage() {
+      this.currentPage = 1 // Reset to first page when items per page changes
     },
   },
 }
