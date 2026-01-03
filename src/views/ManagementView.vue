@@ -106,18 +106,34 @@
           <div class="modal-body">
             <div v-if="selectedService" class="row">
               <div class="col-md-6">
-                <h6>Service Information</h6>
-                <p><strong>Date:</strong> {{ formatDate(selectedService.service_date) }}</p>
-                <p><strong>Time:</strong> {{ formatTime(selectedService.service_time) }}</p>
-                <p><strong>Type:</strong> {{ formatServiceType(selectedService.service_type) }}</p>
-                <p><strong>Leader:</strong> {{ selectedService.leader || 'TBD' }}</p>
-                <p><strong>Location:</strong> {{ selectedService.location || 'Main Sanctuary' }}</p>
-                <p><strong>Description:</strong></p>
+                <h6>
+                  <strong><u>Service Information</u></strong>
+                </h6>
+                <p>
+                  <strong><em>Date:</em></strong> {{ formatDate(selectedService.service_date) }}
+                </p>
+                <p>
+                  <strong><em>Time:</em></strong> {{ formatTime(selectedService.service_time) }}
+                </p>
+                <p>
+                  <strong><em>Type:</em></strong>
+                  {{ formatServiceType(selectedService.service_type) }}
+                </p>
+                <p>
+                  <strong><em>Leader:</em></strong> {{ selectedService.leader || 'TBD' }}
+                </p>
+                <p>
+                  <strong><em>Location:</em></strong>
+                  {{ selectedService.location || 'Main Sanctuary' }}
+                </p>
+                <p>
+                  <strong><em>Description:</em></strong>
+                </p>
                 <p>{{ selectedService.description }}</p>
               </div>
 
               <div class="col-md-6">
-                <h6>Volunteers</h6>
+                <h6><u>Volunteers</u></h6>
                 <div class="mb-3">
                   <button @click="showVolunteerModal = true" class="btn btn-sm btn-primary">
                     Add Volunteer

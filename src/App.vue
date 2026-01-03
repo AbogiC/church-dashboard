@@ -53,7 +53,7 @@
       <router-view />
     </main>
 
-    <footer class="mt-5 py-3 bg-light border-top">
+    <footer class="mt-5 py-3 border-top">
       <div class="container text-center">
         <p class="mb-0 text-muted">
           © {{ new Date().getFullYear() }} GKI Menteng. All rights reserved.
