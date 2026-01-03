@@ -64,24 +64,26 @@
                         </span>
                       </td>
                       <td>
-                        <button
-                          @click="viewServiceDetails(service)"
-                          class="btn btn-sm btn-outline-primary me-2"
-                        >
-                          Manage
-                        </button>
-                        <button
-                          @click="editService(service)"
-                          class="btn btn-sm btn-outline-secondary me-2"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          @click="deleteService(service.id)"
-                          class="btn btn-sm btn-outline-danger"
-                        >
-                          Delete
-                        </button>
+                        <div style="display: flex">
+                          <button
+                            @click="viewServiceDetails(service)"
+                            class="btn btn-sm btn-outline-primary me-2"
+                          >
+                            Manage
+                          </button>
+                          <button
+                            @click="editService(service)"
+                            class="btn btn-sm btn-outline-secondary me-2"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            @click="deleteService(service.id)"
+                            class="btn btn-sm btn-outline-danger"
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   </tbody>
@@ -239,7 +241,13 @@
 
               <div class="mb-3">
                 <label class="form-label">Location</label>
-                <input v-model="serviceForm.location" type="text" class="form-control" />
+                <select v-model="serviceForm.location" class="form-select" required>
+                  <option value="Ruang Ibadah">Ruang Ibadah</option>
+                  <option value="Ruang Serbaguna">Ruang Serbaguna</option>
+                  <option value="Betlehem">Betlehem</option>
+                  <option value="Nazareth">Nazareth</option>
+                  <option value="Yerusalem">Yerusalem</option>
+                </select>
               </div>
 
               <div class="text-end">
@@ -577,9 +585,7 @@ export default {
     getServiceTypeClass(type) {
       const classes = {
         sunday_service: 'bg-primary',
-        bible_study: 'bg-success',
-        prayer_meeting: 'bg-info',
-        special_event: 'bg-warning',
+        rehearsal: 'bg-success',
       }
       return classes[type] || 'bg-secondary'
     },
@@ -608,17 +614,12 @@ export default {
 </script>
 
 <style scoped>
-.volunteer-item {
-  background-color: #f8f9fa;
-}
-
 .volunteer-item:hover {
-  background-color: #e9ecef;
+  transform: scale(1.03);
 }
 
 .table th {
   font-weight: 600;
-  color: #495057;
 }
 
 .badge {

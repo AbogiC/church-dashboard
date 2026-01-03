@@ -3,10 +3,16 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
       <div class="container">
         <router-link class="navbar-brand" to="/">
-          <i class="bi bi-house-door-fill me-2"></i>
+          <img
+            src="/gki_menteng.jpg"
+            alt="GKI Menteng Logo"
+            width="30"
+            height="30"
+            class="d-inline-block align-top me-2"
+          />
           GKI Menteng
         </router-link>
-        <button
+        <!-- <button
           class="navbar-toggler"
           type="button"
           data-bs-toggle="collapse"
@@ -16,7 +22,7 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
-            <!-- <li class="nav-item">
+            <li class="nav-item">
               <router-link class="nav-link" to="/">
                 <i class="bi bi-house me-1"></i> Home
               </router-link>
@@ -25,14 +31,21 @@
               <router-link class="nav-link" to="/about">
                 <i class="bi bi-info-circle me-1"></i> About
               </router-link>
-            </li> -->
+            </li>
             <li class="nav-item">
               <router-link class="nav-link" to="/management">
                 <i class="bi bi-gear me-1"></i> Management
               </router-link>
             </li>
           </ul>
-        </div>
+        </div> -->
+        <button
+          @click="toggleTheme"
+          class="btn btn-outline-light ms-3"
+          :title="theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'"
+        >
+          <i :class="theme === 'light' ? 'bi bi-moon-fill' : 'bi bi-sun-fill'"></i>
+        </button>
       </div>
     </nav>
 
@@ -51,8 +64,17 @@
 </template>
 
 <script>
+import { useTheme } from '@/composables/useTheme'
+
 export default {
   name: 'App',
+  setup() {
+    const { theme, toggleTheme } = useTheme()
+    return {
+      theme,
+      toggleTheme,
+    }
+  },
 }
 </script>
 
@@ -61,6 +83,7 @@ export default {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  font-family: 'Zain', sans-serif;
 }
 
 main {
