@@ -452,7 +452,7 @@ export default {
       selectedVolunteer: null,
       calendarEvents: [],
       currentPage: 1,
-      itemsPerPage: 10,
+      itemsPerPage: 5,
       calendarOptions: {
         plugins: [dayGridPlugin, interactionPlugin],
         initialView: 'dayGridMonth',
@@ -465,13 +465,6 @@ export default {
         },
         buttonText: {
           today: '📅', // Customize the "Today" button text if needed
-        },
-
-        // Set global time format
-        eventTimeFormat: {
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false, // Change to false for 24-hour format
         },
       },
 
