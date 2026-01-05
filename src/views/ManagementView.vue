@@ -366,10 +366,13 @@
             <form @submit.prevent="saveVolunteer">
               <div class="mb-3">
                 <label class="form-label">Full Name</label>
-                <input
-                  v-model="volunteerForm.full_name"
-                  type="text"
-                  class="form-control"
+                <multiselect
+                  v-model="selectedVolunteer"
+                  :options="volunteerList"
+                  label="full_name"
+                  track-by="id"
+                  placeholder="Select a volunteer"
+                  @input="onVolunteerSelected"
                   required
                 />
               </div>
@@ -425,10 +428,12 @@ import apiService from '@/services/api.js'
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
+import Multiselect from 'vue-multiselect'
 
 export default {
   components: {
     FullCalendar,
+    Multiselect,
   },
   name: 'ManagementView',
   data() {
@@ -436,6 +441,7 @@ export default {
       services: [],
       upcomingServices: [],
       volunteers: [],
+      volunteerList: [],
       loadingServices: false,
       loadingVolunteers: false,
       showServiceModal: false,
@@ -443,6 +449,7 @@ export default {
       showVolunteerModal: false,
       selectedService: null,
       editingService: null,
+      selectedVolunteer: null,
       calendarEvents: [],
       currentPage: 1,
       itemsPerPage: 10,
@@ -479,10 +486,8 @@ export default {
       },
       volunteerForm: {
         service_id: null,
-        full_name: '',
+        volunteer_id: '',
         role: 'worship_leader',
-        phone: '',
-        email: '',
         assigned_date: '',
       },
     }
@@ -514,6 +519,7 @@ export default {
   },
   async created() {
     await this.loadServices()
+    await this.loadVolunteerList()
   },
   methods: {
     async loadServices() {
@@ -579,6 +585,14 @@ export default {
         console.error('Error loading volunteers:', error)
       } finally {
         this.loadingVolunteers = false
+      }
+    },
+
+    async loadVolunteerList() {
+      try {
+        this.volunteerList = await apiService.getVolunteerList()
+      } catch (error) {
+        console.error('Error loading volunteer list:', error)
       }
     },
 
@@ -670,10 +684,11 @@ export default {
 
     closeVolunteerModal() {
       this.showVolunteerModal = false
+      this.selectedVolunteer = null
       this.volunteerForm = {
         service_id: null,
         full_name: '',
-        role: 'usher',
+        role: 'worship_leader',
         phone: '',
         email: '',
         assigned_date: '',
@@ -712,6 +727,18 @@ export default {
         .split('_')
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ')
+    },
+
+    onVolunteerSelected() {
+      if (this.selectedVolunteer) {
+        this.volunteerForm.full_name = this.selectedVolunteer.full_name
+        this.volunteerForm.phone = this.selectedVolunteer.phone || ''
+        this.volunteerForm.email = this.selectedVolunteer.email || ''
+      } else {
+        this.volunteerForm.full_name = ''
+        this.volunteerForm.phone = ''
+        this.volunteerForm.email = ''
+      }
     },
 
     getStatusClass(status) {

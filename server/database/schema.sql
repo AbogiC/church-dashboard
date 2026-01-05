@@ -29,12 +29,18 @@ CREATE TABLE services (
 CREATE TABLE volunteers (
     id INT PRIMARY KEY AUTO_INCREMENT,
     service_id INT,
-    full_name VARCHAR(100) NOT NULL,
-    role ENUM('worship_leader', 'preacher', 'usher', 'technical', 'childrens_ministry', 'prayer_team', 'greeter') NOT NULL,
-    phone VARCHAR(20),
-    email VARCHAR(100),
+    volunteer_id INT,
+    role ENUM('worship_leader', 'musician', 'soundman') NOT NULL,
     assigned_date DATE NOT NULL,
     status ENUM('confirmed', 'pending', 'unavailable') DEFAULT 'pending',
+    FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE
+);
+
+CREATE TABLE volunteer_list (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    full_name VARCHAR(100) NOT NULL,
+    phone VARCHAR(20),
+    email VARCHAR(100),
     FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE
 );
 

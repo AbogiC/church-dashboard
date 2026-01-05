@@ -5,9 +5,10 @@ import db from '../database/db.js'
 // Get volunteers for a service
 router.get('/service/:serviceId', async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM volunteers WHERE service_id = ? ORDER BY role', [
-      req.params.serviceId,
-    ])
+    const [rows] = await db.query(
+      'SELECT v.id, v.service_id, v.volunteer_id, v.role, v.assigned_date, v.status, vl.full_name, vl.phone, vl.email FROM volunteers v INNER JOIN volunteer_list vl ON v.volunteer_id = vl.id WHERE v.service_id = ? ORDER BY v.role',
+      [req.params.serviceId],
+    )
     res.json(rows)
   } catch (error) {
     res.status(500).json({ error: error.message })
@@ -17,10 +18,10 @@ router.get('/service/:serviceId', async (req, res) => {
 // Assign volunteer to service
 router.post('/', async (req, res) => {
   try {
-    const { service_id, full_name, role, phone, email, assigned_date } = req.body
+    const { service_id, volunteer_id, role, assigned_date } = req.body
     const [result] = await db.query(
-      'INSERT INTO volunteers (service_id, full_name, role, phone, email, assigned_date) VALUES (?, ?, ?, ?, ?, ?)',
-      [service_id, full_name, role, phone, email, assigned_date],
+      'INSERT INTO volunteers (service_id, volunteer_id, role, assigned_date) VALUES (?, ?, ?, ?)',
+      [service_id, volunteer_id, role, assigned_date],
     )
     res.json({ id: result.insertId, message: 'Volunteer assigned successfully' })
   } catch (error) {

@@ -13,12 +13,14 @@ app.use(express.json())
 import newsRoutes from './routes/news.js'
 import serviceRoutes from './routes/services.js'
 import volunteerRoutes from './routes/volunteers.js'
+import volunteerListRoutes from './routes/volunteer_list.js'
 import aboutRoutes from './routes/about.js'
 
 // Use routes
 app.use('/api/news', newsRoutes)
 app.use('/api/services', serviceRoutes)
 app.use('/api/volunteers', volunteerRoutes)
+app.use('/api/volunteer-list', volunteerListRoutes)
 app.use('/api/about', aboutRoutes)
 
 app.listen(PORT, '0.0.0.0', () => {

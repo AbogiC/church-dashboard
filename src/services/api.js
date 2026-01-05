@@ -142,6 +142,19 @@ class ApiService {
       return response.data.count
     }
   }
+
+  // Volunteer List
+  async getVolunteerList() {
+    if (isProduction) {
+      const volunteerListCol = collection(db, 'volunteer_list')
+      const q = query(volunteerListCol, orderBy('full_name'))
+      const snapshot = await getDocs(q)
+      return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    } else {
+      const response = await this.client.get('/volunteer-list')
+      return response.data
+    }
+  }
 }
 
 export default new ApiService()

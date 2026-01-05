@@ -33,6 +33,7 @@
     "sweetalert2": "^11.26.17",
     "vue": "^3.5.26",
     "vue-axios": "^3.5.2",
+    "vue-multiselect": "^3.4.0",
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
