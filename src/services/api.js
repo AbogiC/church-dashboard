@@ -7,6 +7,7 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  getDoc,
   query,
   where,
   orderBy,
@@ -97,7 +98,27 @@ class ApiService {
       const volunteersCol = collection(db, 'volunteers')
       const q = query(volunteersCol, where('service_id', '==', serviceId))
       const volunteersSnapshot = await getDocs(q)
-      return volunteersSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+      const volunteers = volunteersSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+
+      // Fetch volunteer details from volunteer_list
+      const volunteerListCol = collection(db, 'volunteer_list')
+      const volunteerIds = [...new Set(volunteers.map((v) => v.volunteer_id))]
+      const volunteerDetailsPromises = volunteerIds.map((id) => getDoc(doc(volunteerListCol, id)))
+      const volunteerDetailsSnapshots = await Promise.all(volunteerDetailsPromises)
+      const volunteerDetailsMap = {}
+      volunteerDetailsSnapshots.forEach((snapshot) => {
+        if (snapshot.exists()) {
+          volunteerDetailsMap[snapshot.id] = snapshot.data()
+        }
+      })
+
+      // Merge data
+      return volunteers.map((volunteer) => ({
+        ...volunteer,
+        full_name: volunteerDetailsMap[volunteer.volunteer_id]?.full_name || '',
+        phone: volunteerDetailsMap[volunteer.volunteer_id]?.phone || '',
+        email: volunteerDetailsMap[volunteer.volunteer_id]?.email || '',
+      }))
     } else {
       const response = await this.client.get(`/volunteers/service/${serviceId}`)
       return response.data
@@ -152,6 +173,16 @@ class ApiService {
       return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
     } else {
       const response = await this.client.get('/volunteer-list')
+      return response.data
+    }
+  }
+
+  async createVolunteerList(volunteerData) {
+    if (isProduction) {
+      const docRef = await addDoc(collection(db, 'volunteer_list'), volunteerData)
+      return { id: docRef.id, ...volunteerData }
+    } else {
+      const response = await this.client.post('/volunteer-list', volunteerData)
       return response.data
     }
   }

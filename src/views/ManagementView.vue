@@ -168,6 +168,48 @@
       </div>
     </div>
 
+    <!-- Volunteer List -->
+    <div class="row">
+      <div class="col-12">
+        <div class="card mb-4">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h4>Volunteer List</h4>
+            <button @click="showAddVolunteerModal = true" class="btn btn-primary">
+              Add New Volunteer
+            </button>
+          </div>
+          <div class="card-body">
+            <div v-if="loadingAllVolunteers" class="text-center">
+              <div class="spinner-border"></div>
+            </div>
+            <div v-else-if="allVolunteers.length === 0" class="text-center text-muted">
+              No volunteers
+            </div>
+            <div v-else>
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Contact Number</th>
+                      <th>Email</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="volunteer in allVolunteers" :key="volunteer.id">
+                      <td>{{ volunteer.full_name }}</td>
+                      <td>{{ volunteer.phone || '-' }}</td>
+                      <td>{{ volunteer.email || '-' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Service Details Modal -->
     <div v-if="showServiceDetails" class="modal fade show" style="display: block">
       <div class="modal-dialog modal-lg">
@@ -372,7 +414,8 @@
                   label="full_name"
                   track-by="id"
                   placeholder="Select a volunteer"
-                  @input="onVolunteerSelected"
+                  @select="onVolunteerSelected"
+                  class="transparent-multiselect"
                   required
                 />
               </div>
@@ -384,17 +427,6 @@
                   <option value="musician">Musician</option>
                   <option value="soundman">Soundman</option>
                 </select>
-              </div>
-
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Phone</label>
-                  <input v-model="volunteerForm.phone" type="tel" class="form-control" />
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label">Email</label>
-                  <input v-model="volunteerForm.email" type="email" class="form-control" />
-                </div>
               </div>
 
               <div class="mb-3">
@@ -419,6 +451,50 @@
       </div>
     </div>
     <div v-if="showVolunteerModal" class="modal-backdrop fade show"></div>
+
+    <!-- Add New Volunteer Modal -->
+    <div v-if="showAddVolunteerModal" class="modal fade show" style="display: block">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Add New Volunteer</h5>
+            <button type="button" class="btn-close" @click="closeAddVolunteerModal"></button>
+          </div>
+          <div class="modal-body">
+            <form @submit.prevent="saveNewVolunteer">
+              <div class="mb-3">
+                <label class="form-label">Full Name</label>
+                <input
+                  v-model="newVolunteerForm.full_name"
+                  type="text"
+                  class="form-control"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Phone</label>
+                <input v-model="newVolunteerForm.phone" type="tel" class="form-control" />
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input v-model="newVolunteerForm.email" type="email" class="form-control" />
+              </div>
+              <div class="text-end">
+                <button
+                  type="button"
+                  class="btn btn-secondary me-2"
+                  @click="closeAddVolunteerModal"
+                >
+                  Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">Add Volunteer</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-if="showAddVolunteerModal" class="modal-backdrop fade show"></div>
   </div>
 </template>
 
@@ -442,11 +518,14 @@ export default {
       upcomingServices: [],
       volunteers: [],
       volunteerList: [],
+      allVolunteers: [],
       loadingServices: false,
       loadingVolunteers: false,
+      loadingAllVolunteers: false,
       showServiceModal: false,
       showServiceDetails: false,
       showVolunteerModal: false,
+      showAddVolunteerModal: false,
       selectedService: null,
       editingService: null,
       selectedVolunteer: null,
@@ -482,6 +561,12 @@ export default {
         volunteer_id: '',
         role: 'worship_leader',
         assigned_date: '',
+        status: 'pending',
+      },
+      newVolunteerForm: {
+        full_name: '',
+        phone: '',
+        email: '',
       },
     }
   },
@@ -513,6 +598,7 @@ export default {
   async created() {
     await this.loadServices()
     await this.loadVolunteerList()
+    await this.loadAllVolunteers()
   },
   methods: {
     async loadServices() {
@@ -523,14 +609,8 @@ export default {
 
         // Set calendar events
         this.calendarEvents = this.services.map((service) => {
-          console.log(`\n=== Processing: ${service.title} ===`)
-          console.log('Original service_date (UTC):', service.service_date)
-          console.log('Original service_time (local?):', service.service_time)
-
           // Parse the UTC date
           const utcDate = new Date(service.service_date)
-          console.log('UTC Date object:', utcDate.toISOString())
-          console.log('UTC Date local string:', utcDate.toString())
 
           // Get the local date portion (based on browser's timezone)
           const localYear = utcDate.getFullYear()
@@ -538,11 +618,8 @@ export default {
           const localDay = String(utcDate.getDate()).padStart(2, '0')
           const localDateStr = `${localYear}-${localMonth}-${localDay}`
 
-          console.log('Local date (YYYY-MM-DD):', localDateStr)
-
           // Combine with the service_time
           const combinedDateTime = `${localDateStr}T${service.service_time}`
-          console.log('Combined date-time:', combinedDateTime)
 
           return {
             title: service.title,
@@ -586,6 +663,17 @@ export default {
         this.volunteerList = await apiService.getVolunteerList()
       } catch (error) {
         console.error('Error loading volunteer list:', error)
+      }
+    },
+
+    async loadAllVolunteers() {
+      this.loadingAllVolunteers = true
+      try {
+        this.allVolunteers = await apiService.getVolunteerList()
+      } catch (error) {
+        console.error('Error loading all volunteers:', error)
+      } finally {
+        this.loadingAllVolunteers = false
       }
     },
 
@@ -680,11 +768,29 @@ export default {
       this.selectedVolunteer = null
       this.volunteerForm = {
         service_id: null,
-        full_name: '',
+        volunteer_id: '',
         role: 'worship_leader',
+        assigned_date: '',
+      }
+    },
+
+    async saveNewVolunteer() {
+      try {
+        await apiService.createVolunteerList(this.newVolunteerForm)
+        this.closeAddVolunteerModal()
+        await this.loadAllVolunteers()
+        await this.loadVolunteerList()
+      } catch (error) {
+        console.error('Error saving new volunteer:', error)
+      }
+    },
+
+    closeAddVolunteerModal() {
+      this.showAddVolunteerModal = false
+      this.volunteerForm = {
+        full_name: '',
         phone: '',
         email: '',
-        assigned_date: '',
       }
     },
 
@@ -724,13 +830,10 @@ export default {
 
     onVolunteerSelected() {
       if (this.selectedVolunteer) {
-        this.volunteerForm.full_name = this.selectedVolunteer.full_name
-        this.volunteerForm.phone = this.selectedVolunteer.phone || ''
-        this.volunteerForm.email = this.selectedVolunteer.email || ''
+        console.log('Selected volunteer:', this.selectedVolunteer.id)
+        this.volunteerForm.volunteer_id = this.selectedVolunteer.id
       } else {
-        this.volunteerForm.full_name = ''
-        this.volunteerForm.phone = ''
-        this.volunteerForm.email = ''
+        this.volunteerForm.volunteer_id = ''
       }
     },
 
@@ -772,5 +875,9 @@ export default {
 .badge {
   font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
+}
+
+.transparent-multiselect :deep(.multiselect__tags) {
+  background: transparent !important;
 }
 </style>
