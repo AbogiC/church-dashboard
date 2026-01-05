@@ -39,9 +39,8 @@ CREATE TABLE volunteers (
 CREATE TABLE volunteer_list (
     id INT PRIMARY KEY AUTO_INCREMENT,
     full_name VARCHAR(100) NOT NULL,
+    capability VARCHAR(100),
     phone VARCHAR(20),
-    email VARCHAR(100),
-    FOREIGN KEY (service_id) REFERENCES services(id) ON DELETE CASCADE
 );
 
 -- About Church Information

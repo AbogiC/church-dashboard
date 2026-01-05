@@ -14,10 +14,10 @@ router.get('/', async (req, res) => {
 
 router.post('/', async (req, res) => {
   try {
-    const { full_name, phone, email } = req.body
+    const { full_name, capability, phone } = req.body
     const [result] = await db.query(
-      'INSERT INTO volunteer_list (full_name, phone, email) VALUES (?, ?, ?)',
-      [full_name, phone, email],
+      'INSERT INTO volunteer_list (full_name, capability, phone) VALUES (?, ?, ?)',
+      [full_name, capability, phone],
     )
     res.status(201).json({ id: result.insertId })
   } catch (error) {

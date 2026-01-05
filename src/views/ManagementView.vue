@@ -191,15 +191,15 @@
                   <thead>
                     <tr>
                       <th>Name</th>
+                      <th>Capability</th>
                       <th>Contact Number</th>
-                      <th>Email</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr v-for="volunteer in allVolunteers" :key="volunteer.id">
                       <td>{{ volunteer.full_name }}</td>
+                      <td>{{ volunteer.capability || '-' }}</td>
                       <td>{{ volunteer.phone || '-' }}</td>
-                      <td>{{ volunteer.email || '-' }}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -472,12 +472,21 @@
                 />
               </div>
               <div class="mb-3">
-                <label class="form-label">Phone</label>
-                <input v-model="newVolunteerForm.phone" type="tel" class="form-control" />
+                <label class="form-label">Capability</label>
+                <multiselect
+                  v-model="selectedCapability"
+                  :options="capabilityList"
+                  label="name_capability"
+                  track-by="id"
+                  placeholder="Select capabilities"
+                  :multiple="true"
+                  class="transparent-multiselect"
+                  required
+                />
               </div>
               <div class="mb-3">
-                <label class="form-label">Email</label>
-                <input v-model="newVolunteerForm.email" type="email" class="form-control" />
+                <label class="form-label">Phone</label>
+                <input v-model="newVolunteerForm.phone" type="email" class="form-control" />
               </div>
               <div class="text-end">
                 <button
@@ -518,6 +527,7 @@ export default {
       upcomingServices: [],
       volunteers: [],
       volunteerList: [],
+      capabilityList: [],
       allVolunteers: [],
       loadingServices: false,
       loadingVolunteers: false,
@@ -529,6 +539,7 @@ export default {
       selectedService: null,
       editingService: null,
       selectedVolunteer: null,
+      selectedCapability: [],
       calendarEvents: [],
       currentPage: 1,
       itemsPerPage: 5,
@@ -565,8 +576,8 @@ export default {
       },
       newVolunteerForm: {
         full_name: '',
+        capability: '',
         phone: '',
-        email: '',
       },
     }
   },
@@ -599,6 +610,7 @@ export default {
     await this.loadServices()
     await this.loadVolunteerList()
     await this.loadAllVolunteers()
+    this.loadCapabilityList()
   },
   methods: {
     async loadServices() {
@@ -664,6 +676,23 @@ export default {
       } catch (error) {
         console.error('Error loading volunteer list:', error)
       }
+    },
+
+    loadCapabilityList() {
+      this.capabilityList = [
+        {
+          id: '1',
+          name_capability: 'Worship Leader',
+        },
+        {
+          id: '2',
+          name_capability: 'Musician',
+        },
+        {
+          id: '3',
+          name_capability: 'Soundman',
+        },
+      ]
     },
 
     async loadAllVolunteers() {
@@ -776,6 +805,9 @@ export default {
 
     async saveNewVolunteer() {
       try {
+        this.newVolunteerForm.capability = this.selectedCapability
+          .map((c) => c.name_capability)
+          .join(', ')
         await apiService.createVolunteerList(this.newVolunteerForm)
         this.closeAddVolunteerModal()
         await this.loadAllVolunteers()
@@ -787,10 +819,11 @@ export default {
 
     closeAddVolunteerModal() {
       this.showAddVolunteerModal = false
-      this.volunteerForm = {
+      this.selectedCapability = []
+      this.newVolunteerForm = {
         full_name: '',
+        capability: '',
         phone: '',
-        email: '',
       }
     },
 
