@@ -22,7 +22,7 @@
         <div class="card mb-4">
           <div class="card-header d-flex justify-content-between align-items-center">
             <h4>Sunday Services</h4>
-            <button @click="showServiceModal = true" class="btn btn-primary">
+            <button v-if="isAuthorized" @click="showServiceModal = true" class="btn btn-primary">
               Add New Service
             </button>
           </div>
@@ -72,12 +72,14 @@
                             Manage
                           </button>
                           <button
+                            v-if="isAuthorized"
                             @click="editService(service)"
                             class="btn btn-sm btn-outline-secondary me-2"
                           >
                             Edit
                           </button>
                           <button
+                            v-if="isAuthorized"
                             @click="deleteService(service.id)"
                             class="btn btn-sm btn-outline-danger"
                           >
@@ -174,7 +176,11 @@
         <div class="card mb-4">
           <div class="card-header d-flex justify-content-between align-items-center">
             <h4>Volunteer List</h4>
-            <button @click="showAddVolunteerModal = true" class="btn btn-primary">
+            <button
+              v-if="isAuthorized"
+              @click="showAddVolunteerModal = true"
+              class="btn btn-primary"
+            >
               Add New Volunteer
             </button>
           </div>
@@ -204,12 +210,14 @@
                       <td>
                         <div style="display: flex">
                           <button
+                            v-if="isAuthorized"
                             @click="updateNewVolunteerList(volunteer.id)"
                             class="btn btn-sm btn-outline-secondary me-2"
                           >
                             Edit
                           </button>
                           <button
+                            v-if="isAuthorized"
                             @click="deleteNewVolunteerList(volunteer.id)"
                             class="btn btn-sm btn-outline-danger"
                             :disabled="deletingVolunteer"
@@ -272,7 +280,11 @@
               <div class="col-md-6">
                 <h6><u>Volunteers</u></h6>
                 <div class="mb-3">
-                  <button @click="showVolunteerModal = true" class="btn btn-sm btn-primary">
+                  <button
+                    v-if="isAuthorized"
+                    @click="showVolunteerModal = true"
+                    class="btn btn-sm btn-primary"
+                  >
                     Add Volunteer
                   </button>
                 </div>
@@ -303,6 +315,7 @@
                       </div>
                       <div>
                         <button
+                          v-if="isAuthorized"
                           @click="updateVolunteerStatus(volunteer.id, 'confirmed')"
                           class="btn btn-sm btn-success me-1"
                           :disabled="volunteer.status === 'confirmed'"
@@ -310,6 +323,7 @@
                           ✓
                         </button>
                         <button
+                          v-if="isAuthorized"
                           @click="updateVolunteerStatus(volunteer.id, 'unavailable')"
                           class="btn btn-sm btn-warning me-1"
                           :disabled="volunteer.status === 'unavailable'"
@@ -317,6 +331,7 @@
                           ✗
                         </button>
                         <button
+                          v-if="isAuthorized"
                           @click="removeVolunteer(volunteer.id)"
                           class="btn btn-sm btn-danger"
                         >
@@ -545,6 +560,7 @@ import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import Multiselect from 'vue-multiselect'
+import { useAuth } from '@/auth/useAuth'
 
 export default {
   components: {
@@ -614,9 +630,16 @@ export default {
         capability: '',
         phone: '',
       },
+      userRole: null,
     }
   },
   computed: {
+    auth() {
+      return useAuth()
+    },
+    isAuthorized() {
+      return this.auth.isAuthenticated.value && this.userRole !== 'user'
+    },
     paginatedServices() {
       const start = (this.currentPage - 1) * this.itemsPerPage
       const end = start + this.itemsPerPage
@@ -646,6 +669,15 @@ export default {
     await this.loadVolunteerList()
     await this.loadAllVolunteers()
     this.loadCapabilityList()
+
+    if (this.auth.isAuthenticated.value) {
+      try {
+        const userData = await apiService.getUserByFirebaseUid(this.auth.user.value.uid)
+        this.userRole = userData.role
+      } catch (error) {
+        console.error('Error fetching user role:', error)
+      }
+    }
   },
   methods: {
     async loadServices() {
@@ -898,6 +930,7 @@ export default {
         service_id: null,
         volunteer_id: '',
         role: 'worship_leader',
+        status: 'pending',
         assigned_date: '',
       }
       this.showCapability = false
