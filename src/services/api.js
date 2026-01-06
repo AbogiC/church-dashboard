@@ -223,36 +223,31 @@ class ApiService {
 
   // Users
   async getUsers() {
-    if (isProduction) {
-      const userCol = collection(db, 'users')
-      const q = query(userCol, orderBy('email'))
-      const snapshot = await getDocs(q)
-      return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-    } else {
-      const response = await this.client.get('/users')
-      return response.data
+    const userCol = collection(db, 'users')
+    const q = query(userCol, orderBy('email'))
+    const snapshot = await getDocs(q)
+    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  }
+
+  async getUserManagementId(email) {
+    const userCol = collection(db, 'users')
+    const q = query(userCol, where('email', '==', email))
+    const snapshot = await getDocs(q)
+    if (snapshot.empty) {
+      throw new Error('User not found')
     }
+    return snapshot.docs[0].id
   }
 
   async createUser(userData) {
-    console.log('create user data: ' + JSON.stringify(userData))
-    if (isProduction) {
-      const docRef = await addDoc(collection(db, 'users'), userData)
-      return { id: docRef.id, ...userData }
-    } else {
-      await addDoc(collection(db, 'users'), userData)
-      const response = await this.client.post('/users', userData)
-      return response.data
-    }
+    const docRef = await addDoc(collection(db, 'users'), userData)
+    return { id: docRef.id, ...userData }
   }
 
-  async updateUser(id, userData) {
-    if (isProduction) {
-      throw new Error('Production user update not implemented')
-    } else {
-      const response = await this.client.put(`/users/${id}`, userData)
-      return response.data
-    }
+  async updateUser(userData) {
+    const userManagementId = await this.getUserManagementId(userData.email)
+    const updateUser = doc(db, 'users', userManagementId)
+    await updateDoc(updateUser, userData)
   }
 
   async updateUserRole(id, role) {
@@ -266,7 +261,7 @@ class ApiService {
 
   async deleteUser(id) {
     if (isProduction) {
-      throw new Error('Production user delete not implemented')
+      await deleteDoc(doc(db, 'users', id))
     } else {
       const response = await this.client.delete(`/users/${id}`)
       return response.data

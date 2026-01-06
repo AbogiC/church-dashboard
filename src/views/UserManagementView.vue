@@ -170,7 +170,7 @@ export default {
     async saveUser() {
       try {
         if (this.editingUser) {
-          await apiService.updateUser(this.editingUser.id, this.userForm)
+          await apiService.updateUser(this.userForm)
         } else {
           await apiService.createUser({
             email: this.userForm.email,

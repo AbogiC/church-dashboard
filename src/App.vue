@@ -46,6 +46,14 @@
         >
           <i :class="theme === 'light' ? 'bi bi-moon-fill' : 'bi bi-sun-fill'"></i>
         </button>
+        <button
+          v-if="isAuthenticated"
+          @click="signOutUser()"
+          class="btn btn-outline-light ms-3"
+          title="Logout"
+        >
+          <i class="bi bi-box-arrow-right me-1"></i> Logout
+        </button>
       </div>
     </nav>
 
@@ -65,15 +73,33 @@
 
 <script>
 import { useTheme } from '@/composables/useTheme'
+import { useAuth } from '@/auth/useAuth'
+import { useRouter } from 'vue-router'
 
 export default {
   name: 'App',
   setup() {
     const { theme, toggleTheme } = useTheme()
+    const { isAuthenticated, signOut } = useAuth()
     return {
       theme,
       toggleTheme,
+      isAuthenticated,
+      signOut,
     }
+  },
+
+  data() {
+    return {
+      router: useRouter(),
+    }
+  },
+
+  methods: {
+    signOutUser() {
+      this.signOut()
+      this.router.push('/login')
+    },
   },
 }
 </script>
