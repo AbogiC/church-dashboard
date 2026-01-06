@@ -418,6 +418,11 @@
                   class="transparent-multiselect"
                   required
                 />
+                <div v-if="showCapability">
+                  <span
+                    ><em>Capability: {{ selectedVolunteer?.capability }}</em></span
+                  >
+                </div>
               </div>
 
               <div class="mb-3">
@@ -540,6 +545,7 @@ export default {
       editingService: null,
       selectedVolunteer: null,
       selectedCapability: [],
+      showCapability: false,
       calendarEvents: [],
       currentPage: 1,
       itemsPerPage: 5,
@@ -681,16 +687,40 @@ export default {
     loadCapabilityList() {
       this.capabilityList = [
         {
-          id: '1',
-          name_capability: 'Worship Leader',
+          id: 1,
+          name_capability: 'Sound Engineer',
         },
         {
-          id: '2',
-          name_capability: 'Musician',
+          id: 2,
+          name_capability: 'Singing',
         },
         {
-          id: '3',
-          name_capability: 'Soundman',
+          id: 3,
+          name_capability: 'Piano',
+        },
+        {
+          id: 4,
+          name_capability: 'Electone',
+        },
+        {
+          id: 5,
+          name_capability: 'Keyboard',
+        },
+        {
+          id: 6,
+          name_capability: 'Electric Guitar',
+        },
+        {
+          id: 7,
+          name_capability: 'Acoustic Guitar',
+        },
+        {
+          id: 8,
+          name_capability: 'Bass Guitar',
+        },
+        {
+          id: 9,
+          name_capability: 'Drums',
         },
       ]
     },
@@ -801,6 +831,7 @@ export default {
         role: 'worship_leader',
         assigned_date: '',
       }
+      this.showCapability = false
     },
 
     async saveNewVolunteer() {
@@ -863,10 +894,11 @@ export default {
 
     onVolunteerSelected() {
       if (this.selectedVolunteer) {
-        console.log('Selected volunteer:', this.selectedVolunteer.id)
         this.volunteerForm.volunteer_id = this.selectedVolunteer.id
+        this.showCapability = true
       } else {
         this.volunteerForm.volunteer_id = ''
+        this.showCapability = false
       }
     },
 
