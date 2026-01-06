@@ -193,6 +193,7 @@
                       <th>Name</th>
                       <th>Capability</th>
                       <th>Contact Number</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -200,6 +201,27 @@
                       <td>{{ volunteer.full_name }}</td>
                       <td>{{ volunteer.capability || '-' }}</td>
                       <td>{{ volunteer.phone || '-' }}</td>
+                      <td>
+                        <div style="display: flex">
+                          <button
+                            @click="updateNewVolunteerList(volunteer.id)"
+                            class="btn btn-sm btn-outline-secondary me-2"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            @click="deleteNewVolunteerList(volunteer.id)"
+                            class="btn btn-sm btn-outline-danger"
+                            :disabled="deletingVolunteer"
+                          >
+                            <span
+                              v-if="deletingVolunteer"
+                              class="spinner-border spinner-border-sm me-1"
+                            ></span>
+                            Delete
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -462,7 +484,9 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Add New Volunteer</h5>
+            <h5 class="modal-title">
+              {{ editingVolunteer ? 'Update Volunteer' : 'Add New Volunteer' }}
+            </h5>
             <button type="button" class="btn-close" @click="closeAddVolunteerModal"></button>
           </div>
           <div class="modal-body">
@@ -491,7 +515,7 @@
               </div>
               <div class="mb-3">
                 <label class="form-label">Phone</label>
-                <input v-model="newVolunteerForm.phone" type="email" class="form-control" />
+                <input v-model="newVolunteerForm.phone" type="text" class="form-control" />
               </div>
               <div class="text-end">
                 <button
@@ -501,7 +525,9 @@
                 >
                   Cancel
                 </button>
-                <button type="submit" class="btn btn-primary">Add Volunteer</button>
+                <button type="submit" class="btn btn-primary">
+                  {{ editingVolunteer ? 'Update Volunteer' : 'Add Volunteer' }}
+                </button>
               </div>
             </form>
           </div>
@@ -537,6 +563,9 @@ export default {
       loadingServices: false,
       loadingVolunteers: false,
       loadingAllVolunteers: false,
+      deletingVolunteer: false,
+      editingVolunteer: false,
+      editingVolunteerId: null,
       showServiceModal: false,
       showServiceDetails: false,
       showVolunteerModal: false,
@@ -771,6 +800,46 @@ export default {
       }
     },
 
+    async updateNewVolunteerList(volunteerId) {
+      this.editingVolunteer = true
+      this.editingVolunteerId = volunteerId
+      try {
+        const responseVolunteerUser = await apiService.getVolunteerListById(volunteerId)
+        console.log('Response:', responseVolunteerUser)
+
+        // Fill normal fields
+        this.newVolunteerForm.full_name = responseVolunteerUser.full_name
+        this.newVolunteerForm.phone = responseVolunteerUser.phone
+
+        // Convert capability string to array of names
+        const capabilityNames = responseVolunteerUser.capability
+          ? responseVolunteerUser.capability.split(',').map((c) => c.trim())
+          : []
+
+        // Map names to capability objects for multiselect
+        this.selectedCapability = this.capabilityList.filter((cap) =>
+          capabilityNames.includes(cap.name_capability),
+        )
+      } catch (error) {
+        console.error('Error loading volunteer list:', error)
+      }
+
+      this.showAddVolunteerModal = true
+    },
+
+    async deleteNewVolunteerList(id) {
+      if (!confirm('Are you sure you want to delete this volunteer?')) return
+      this.deletingVolunteer = true
+      try {
+        await apiService.deleteVolunteerListById(id)
+        await this.loadAllVolunteers()
+      } catch (error) {
+        console.error('Error deleting volunteer list:', error)
+      } finally {
+        this.deletingVolunteer = false
+      }
+    },
+
     async saveVolunteer() {
       try {
         this.volunteerForm.service_id = this.selectedService.id
@@ -839,8 +908,14 @@ export default {
         this.newVolunteerForm.capability = this.selectedCapability
           .map((c) => c.name_capability)
           .join(', ')
-        await apiService.createVolunteerList(this.newVolunteerForm)
+        if (this.editingVolunteer) {
+          await apiService.updateVolunteerList(this.editingVolunteerId, this.newVolunteerForm)
+        } else {
+          await apiService.createVolunteerList(this.newVolunteerForm)
+        }
         this.closeAddVolunteerModal()
+        this.editingVolunteer = false
+        this.editingVolunteerId = null
         await this.loadAllVolunteers()
         await this.loadVolunteerList()
       } catch (error) {
@@ -856,6 +931,8 @@ export default {
         capability: '',
         phone: '',
       }
+      this.editingVolunteer = false
+      this.editingVolunteerId = null
     },
 
     formatDate(dateString) {

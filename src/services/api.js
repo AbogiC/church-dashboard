@@ -177,6 +177,21 @@ class ApiService {
     }
   }
 
+  async getVolunteerListById(id) {
+    if (isProduction) {
+      const docRef = doc(db, 'volunteer_list', id)
+      const docSnap = await getDoc(docRef)
+      if (docSnap.exists()) {
+        return { id: docSnap.id, ...docSnap.data() }
+      } else {
+        throw new Error('Volunteer not found')
+      }
+    } else {
+      const response = await this.client.get(`/volunteer-list/${id}`)
+      return response.data
+    }
+  }
+
   async createVolunteerList(volunteerData) {
     if (isProduction) {
       const docRef = await addDoc(collection(db, 'volunteer_list'), volunteerData)
@@ -184,6 +199,25 @@ class ApiService {
     } else {
       const response = await this.client.post('/volunteer-list', volunteerData)
       return response.data
+    }
+  }
+
+  async updateVolunteerList(id, volunteerData) {
+    if (isProduction) {
+      const docRef = doc(db, 'volunteer_list', id)
+      await updateDoc(docRef, volunteerData)
+      return { id, ...volunteerData }
+    } else {
+      const response = await this.client.put(`/volunteer-list/update/${id}`, volunteerData)
+      return response.data
+    }
+  }
+
+  async deleteVolunteerListById(id) {
+    if (isProduction) {
+      await deleteDoc(doc(db, 'volunteer_list', id))
+    } else {
+      await this.client.delete(`/volunteer-list/delete/${id}`)
     }
   }
 }
