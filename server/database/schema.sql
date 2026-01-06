@@ -59,3 +59,12 @@ INSERT INTO about_church (section, title, content) VALUES
 ('beliefs', 'Our Beliefs', 'Share your church beliefs here...'),
 ('mission', 'Our Mission', 'Share your church mission here...'),
 ('pastors', 'Our Pastors', 'Introduce your pastoral team here...');
+
+-- Users Table for Firebase Auth users and roles
+CREATE TABLE users (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  role ENUM('admin', 'moderator', 'user') DEFAULT 'user',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);

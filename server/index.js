@@ -15,6 +15,7 @@ import serviceRoutes from './routes/services.js'
 import volunteerRoutes from './routes/volunteers.js'
 import volunteerListRoutes from './routes/volunteer_list.js'
 import aboutRoutes from './routes/about.js'
+import userRoutes from './routes/users.js'
 
 // Use routes
 app.use('/api/news', newsRoutes)
@@ -22,6 +23,7 @@ app.use('/api/services', serviceRoutes)
 app.use('/api/volunteers', volunteerRoutes)
 app.use('/api/volunteer-list', volunteerListRoutes)
 app.use('/api/about', aboutRoutes)
+app.use('/api/users', userRoutes)
 
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`)

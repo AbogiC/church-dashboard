@@ -220,6 +220,67 @@ class ApiService {
       await this.client.delete(`/volunteer-list/delete/${id}`)
     }
   }
+
+  // Users
+  async getUsers() {
+    if (isProduction) {
+      const userCol = collection(db, 'users')
+      const q = query(userCol, orderBy('email'))
+      const snapshot = await getDocs(q)
+      return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    } else {
+      const response = await this.client.get('/users')
+      return response.data
+    }
+  }
+
+  async createUser(userData) {
+    console.log('create user data: ' + JSON.stringify(userData))
+    if (isProduction) {
+      const docRef = await addDoc(collection(db, 'users'), userData)
+      return { id: docRef.id, ...userData }
+    } else {
+      await addDoc(collection(db, 'users'), userData)
+      const response = await this.client.post('/users', userData)
+      return response.data
+    }
+  }
+
+  async updateUser(id, userData) {
+    if (isProduction) {
+      throw new Error('Production user update not implemented')
+    } else {
+      const response = await this.client.put(`/users/${id}`, userData)
+      return response.data
+    }
+  }
+
+  async updateUserRole(id, role) {
+    if (isProduction) {
+      throw new Error('Production user update not implemented')
+    } else {
+      const response = await this.client.put(`/users/${id}/role`, { role })
+      return response.data
+    }
+  }
+
+  async deleteUser(id) {
+    if (isProduction) {
+      throw new Error('Production user delete not implemented')
+    } else {
+      const response = await this.client.delete(`/users/${id}`)
+      return response.data
+    }
+  }
+
+  async getUserByFirebaseUid(firebaseUid) {
+    if (isProduction) {
+      throw new Error('Production user fetch not implemented')
+    } else {
+      const response = await this.client.get(`/users/uid/${firebaseUid}`)
+      return response.data
+    }
+  }
 }
 
 export default new ApiService()
